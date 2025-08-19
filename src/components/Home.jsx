@@ -1,20 +1,21 @@
 import React, { useEffect, useRef, useState } from 'react';
 import './home.css';
-import clear_icon from '../assets/clear.png'
-import cloud_icon from '../assets/cloud.png'
-import drizzle_icon from '../assets/drizzle.png'
-import humidity_icon from '../assets/humidity.png'
-import rain_icon from '../assets/rain.png'
-import snow_icon from '../assets/snow.png'
-import wind_icon from '../assets/wind.png'
+import clear_icon from '../assets/clear.png';
+import cloud_icon from '../assets/cloud.png';
+import drizzle_icon from '../assets/drizzle.png';
+import humidity_icon from '../assets/humidity.png';
+import rain_icon from '../assets/rain.png';
+import snow_icon from '../assets/snow.png';
+import wind_icon from '../assets/wind.png';
 
 const apiKey = process.env.REACT_APP_API_KEY;
+
 function Home() {
     const [weatherData, setWeatherData] = useState(false);
     const [isNightMode, setIsNightMode] = useState(false);
-    const inputRef = useRef()
+    const [suggestions, setSuggestions] = useState([]);
+    const inputRef = useRef();
 
-    // Theme styles
     const themes = {
         day: {
             background: 'linear-gradient(120deg, #7bbacb, #0d7fa0, #0d7fa0)',
@@ -57,22 +58,19 @@ function Home() {
         "11n": rain_icon,
         "13d": snow_icon,
         "13n": snow_icon,
-    }
+    };
 
     const search = async (city) => {
-        if (city === "") {
-            //alert("Please enter a city name")
-            return
-        }
+        if (!city) return;
         try {
-            const url = `https://api.openweathermap.org/data/2.5/weather?q=${city}&units=metric&appid=${apiKey}`
+            const url = `https://api.openweathermap.org/data/2.5/weather?q=${city}&units=metric&appid=${apiKey}`;
             const response = await fetch(url);
             const data = await response.json();
             if (!response.ok) {
-                alert(data.message)
-                return
+                alert(data.message);
+                return;
             }
-            const icon = allIcons[data.weather[0].icon] || clear_icon
+            const icon = allIcons[data.weather[0].icon] || clear_icon;
             setWeatherData({
                 city: data.name,
                 temp: Math.floor(data.main.temp),
@@ -80,28 +78,42 @@ function Home() {
                 humidity: data.main.humidity,
                 windSpeed: data.wind.speed,
                 icon: icon,
-            })
-            console.log(data)
+            });
+            setSuggestions([]);
         } catch (error) {
             setWeatherData(false);
             console.error("Error fetching weather data:", error);
         }
-    }
+    };
+
+    const fetchSuggestions = async (query) => {
+        if (!query) {
+            setSuggestions([]);
+            return;
+        }
+        try {
+            const url = `https://api.openweathermap.org/geo/1.0/direct?q=${query}&limit=5&appid=${apiKey}`;
+            const response = await fetch(url);
+            const data = await response.json();
+            setSuggestions(data);
+        } catch (error) {
+            console.error("Error fetching suggestions:", error);
+        }
+    };
 
     useEffect(() => {
-        search('New York')
-    }, [])
+        search('New York');
+    }, []);
 
     return (
         <div
-            class="app-container"
+            className="app-container"
             style={{
                 background: currentTheme.background,
                 color: currentTheme.textColor,
                 transition: 'all 0.5s ease'
             }}
         >
-            {/* Night Mode Toggle Section */}
             <div className="mode-toggle">
                 <button
                     onClick={() => setIsNightMode(!isNightMode)}
@@ -115,7 +127,6 @@ function Home() {
                 </button>
             </div>
 
-            {/* Logo Section */}
             <div id="logo" style={{ filter: currentTheme.logoFilter }}>
                 <img
                     src="https://ssl.gstatic.com/onebox/weather/64/partly_cloudy.png"
@@ -125,13 +136,13 @@ function Home() {
                 />
             </div>
 
-            {/* Search Section */}
             <div id="search">
                 <input
                     ref={inputRef}
                     type="text"
                     placeholder="Search..."
                     className="search-input"
+                    onChange={(e) => fetchSuggestions(e.target.value)}
                     style={{
                         backgroundColor: currentTheme.searchInputBg,
                         color: currentTheme.searchInputColor
@@ -139,9 +150,7 @@ function Home() {
                 />
                 <button
                     className="search-button"
-                    style={{
-                        background: currentTheme.searchButtonBg
-                    }}
+                    style={{ background: currentTheme.searchButtonBg }}
                     onClick={() => search(inputRef.current.value)}
                 >
                     <svg
@@ -162,49 +171,51 @@ function Home() {
                 </button>
             </div>
 
-            {/* Weather Section */}
-            {weatherData ? <>
+            {/* Suggestion List */}
+            <ul className="suggestion-list">
+                {suggestions.map((item, index) => (
+                    <li key={index} onClick={() => search(item.name)}>
+                        {item.name}, {item.state ? `${item.state}, ` : ''}{item.country}
+                    </li>
+                ))}
+            </ul>
 
+            {/* Weather Display */}
+            {weatherData && (
                 <div id="weather-container">
-                    <div class="weather-image">
+                    <div className="weather-image">
                         <img
                             src={weatherData.icon}
                             alt="weather"
-                            class="weather-icon"
-
+                            className="weather-icon"
                         />
-
                     </div>
 
-                    <div class="vertical-stack">
-                        <div class=" top" >
-
-                            <p class="cel">{weatherData.temp}&#8451;</p>
-                            <p class="temp">{weatherData.city}</p>
-
+                    <div className="vertical-stack">
+                        <div className="top">
+                            <p className="cel">{weatherData.temp}&#8451;</p>
+                            <p className="temp">{weatherData.city}</p>
                         </div>
 
-                        <div class="weather bottom" >
-                            <div class="weather-col">
-                                <img src={humidity_icon} alt="Clear" />
+                        <div className="weather bottom">
+                            <div className="weather-col">
+                                <img src={humidity_icon} alt="Humidity" />
                                 <div>
                                     <p>{weatherData.humidity}</p>
                                     <span>Humidity</span>
                                 </div>
                             </div>
-                            <div class="weather-col">
-                                <img src={wind_icon} alt="Clear" />
+                            <div className="weather-col">
+                                <img src={wind_icon} alt="Wind Speed" />
                                 <div>
-                                    <p>{weatherData.windSpeed}&nbsp;km/h</p>
+                                    <p>{weatherData.windSpeed} km/h</p>
                                     <span>Wind speed</span>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </> : <> </>}
-
-
+            )}
         </div>
     );
 }

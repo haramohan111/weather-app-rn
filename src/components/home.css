@@ -255,3 +255,29 @@ body {
     justify-content: center;
   }
 }
+
+
+/* suggation list */
+
+.suggestion-list {
+  list-style: none;
+  margin-top: 5px;
+  padding: 0;
+  background: var(--input-bg);
+  border-radius: 10px;
+  box-shadow: var(--shadow);
+  max-width: 500px;
+  width: 100%;
+}
+
+.suggestion-list li {
+  padding: 10px;
+  cursor: pointer;
+  color: var(--text-color);
+}
+
+.suggestion-list li:hover {
+  background: var(--button-hover);
+  color: white;
+}
+/* end */
