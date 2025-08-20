@@ -21,6 +21,7 @@ function Home() {
   const [localAreas, setLocalAreas] = useState([]);
   const [, setLoading] = useState(false);
   const [showLocalAreas, setShowLocalAreas] = useState(false);
+  const [currentCity, setCurrentCity] = useState("cuttack");
 
   const indianCities = [
     "Delhi", "Mumbai", "Bangalore", "Chennai", "Kolkata",
@@ -297,12 +298,20 @@ function Home() {
     }
   };
 
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    search('cuttack');
+
+useEffect(() => {
+  search(currentCity);
+  fetchMultipleCityWeather();
+  fetchGlobalCityWeather();
+
+  const interval = setInterval(() => {
+    search(currentCity);
     fetchMultipleCityWeather();
     fetchGlobalCityWeather();
-  }, []);
+  }, 300000);
+
+  return () => clearInterval(interval);
+}, [currentCity]);
 
   return (
     <div
